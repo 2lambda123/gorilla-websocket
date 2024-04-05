@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -227,7 +226,6 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 			k == "Connection" ||
 			k == "Sec-Websocket-Key" ||
 			k == "Sec-Websocket-Version" ||
-			//#nosec G101 (CWE-798): Potential HTTP request smuggling via parameter pollution
 			k == "Sec-Websocket-Extensions" ||
 			(k == "Sec-Websocket-Protocol" && len(d.Subprotocols) > 0):
 			return nil, nil, errors.New("websocket: duplicate header not allowed: " + k)
@@ -293,7 +291,7 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 			}
 			err = c.SetDeadline(deadline)
 			if err != nil {
-				c.Close() //#nosec G104 (CWE-703): Errors unhandled
+				c.Close()
 				return nil, err
 			}
 			return c, nil
@@ -333,9 +331,7 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 
 	defer func() {
 		if netConn != nil {
-			// As mentioned in https://github.com/gorilla/websocket/pull/897#issuecomment-1947108098:
-			// It's safe to ignore the errors for netconn.Close()
-			netConn.Close() //#nosec G104 (CWE-703): Errors unhandled
+			netConn.Close()
 		}
 	}()
 
@@ -426,8 +422,8 @@ func (d *Dialer) DialContext(ctx context.Context, urlStr string, requestHeader h
 	resp.Body = io.NopCloser(bytes.NewReader([]byte{}))
 	conn.subprotocol = resp.Header.Get("Sec-Websocket-Protocol")
 
-	netConn.SetDeadline(time.Time{}) //#nosec G104 (CWE-703): Errors unhandled
-	netConn = nil                    // to avoid close in defer.
+	netConn.SetDeadline(time.Time{})
+	netConn = nil // to avoid close in defer.
 	return conn, resp, nil
 }
 
